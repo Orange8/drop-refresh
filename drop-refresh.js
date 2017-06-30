@@ -26,27 +26,30 @@ var dropRefresh = function(el, option){
 			data.scrollY = $(window).scrollTop();
 			data.posY = events.pageY;
 			data.posX = events.pageX;
+			data.touching = true;//开关
 			//获取window距离顶部的高度
 			//获取触点y轴位置
 			//获取触点x轴位置
 		},
 		touchmove: function(event){
+			if (data.touching !== true){
+				return false
+			}
 			var events = event.touches[0];
 			data.newPosY = events.pageY;
 			data.newPosX = events.pageX;
 			data.distanceY = data.newPosY - data.posY;
 			data.distanceX = data.newPosX - data.posX;
-			if(data.distanceX > data.distanceY){
-				return false
-			}
-			var heightVal = Math.min(maxY, data.newPosY)
-			var borderBottomWidth = data.newPosY;
 			if(data.scrollY == 0){
-				el.css({
-					'height': heightVal,
-					'borderBottomWidth': (data.newPosY)/2,
-					'transition': ''
-				})
+				if(data.distanceY > 0 && el.data('loading') != true){
+					var heightVal = Math.min(maxY, data.distanceY)
+					var borderBottomWidth = data.distanceY;
+					el.css({
+						'height': heightVal,
+						'borderBottomWidth': borderBottomWidth,
+						'transition': ''
+					}).data('loading', false);
+				}
 			}
 			//获取触点y轴位置
 			//计算y轴移动距离
@@ -57,15 +60,21 @@ var dropRefresh = function(el, option){
 			//将移动距离暴露给touchEnd
 		},
 		touchend: function(){
-			if(data.newPosY > maxY){
-				el.css({
-					'borderBottomWidth': '0',
-					'transition': ''
-				});
-				params.onReload.call(self)
-			}else{
-				self.origin();
+			if (data.touching !== true){
+				return false
 			}
+			if(data.distanceY > 0){
+				if(data.newPosY > maxY){
+					el.css({
+						'borderBottomWidth': '0',
+						'transition': ''
+					}).data('loading', true);
+					params.onReload.call(self)
+				}else{
+					self.origin();
+				}
+			}
+			data.touching = false;
 			//判断y轴移动距离是否大于maxY
 			//大于则border-bottom值置为0,小于则回归顶部
 			//执行刷新数据操作
@@ -82,5 +91,5 @@ dropRefresh.prototype.origin = function(){
 		'borderBottomWidth':'0',
 		'height': '0',
 		'transition': ''
-	})
+	}).data('loading', false)
 }
