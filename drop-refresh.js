@@ -27,6 +27,7 @@ var dropRefresh = function(el, option){
 			data.posY = events.pageY;
 			data.posX = events.pageX;
 			data.touching = true;//开关
+			data.markY = -1; //判断是否为正常下拉刷新状态
 			//获取window距离顶部的高度
 			//获取触点y轴位置
 			//获取触点x轴位置
@@ -41,9 +42,20 @@ var dropRefresh = function(el, option){
 			data.distanceY = data.newPosY - data.posY;
 			data.distanceX = data.newPosX - data.posX;
 			if(data.scrollY == 0){
-				if(data.distanceY > 0 && el.data('loading') != true){
-					var heightVal = Math.min(maxY, data.distanceY)
-					var borderBottomWidth = data.distanceY;
+				//阻止滚动时默认的滚动条行为
+				if(data.distanceY > 0 || data.markY > 0){
+					event.preventDefault();
+				}
+				//当前状态是否为下拉刷新状态
+				if(data.distanceY > 0 && data.markY == -1){
+					data.markY = data.distanceY;
+				}
+				if(data.markY > 0 && el.data('loading') != true){
+					var heightVal = Math.min(maxY, data.distanceY);
+					var borderBottomWidth = 0;
+					if(heightVal == maxY){
+						borderBottomWidth = data.distanceY - maxY;
+					}
 					el.css({
 						'height': heightVal,
 						'borderBottomWidth': borderBottomWidth,
@@ -63,8 +75,8 @@ var dropRefresh = function(el, option){
 			if (data.touching !== true){
 				return false
 			}
-			if(data.distanceY > 0){
-				if(data.newPosY > maxY){
+			if(data.markY > 0){
+				if(data.distanceY > maxY){
 					el.css({
 						'borderBottomWidth': '0',
 						'transition': ''
