@@ -1,17 +1,20 @@
 var dropRefresh = function(el, option){
 
+	//初始化参数
 	var defaults = {
 		trigger: $('body'),
 		maxY: 40,
 		onReload: function(){}
 	}
 
+	//合并参数
 	var params = $.extend({}, defaults, option || '');
 
 	var data = {} //对象集合
 
 	var self = this;
 
+	//初始化样式
 	self.el = el.css('borderBottom','0px solid transparent');
 
 	self.callback = function(){
@@ -23,14 +26,11 @@ var dropRefresh = function(el, option){
 	params.trigger.on({
 		touchstart: function(event){
 			var events = event.touches[0];
-			data.scrollY = $(window).scrollTop();
-			data.posY = events.pageY;
-			data.posX = events.pageX;
+			data.scrollY = $(window).scrollTop();//获取window距离顶部的高度
+			data.posY = events.pageY;//获取触点y轴位置
+			data.posX = events.pageX;//获取触点x轴位置
 			data.touching = true;//开关
 			data.markY = -1; //判断是否为正常下拉刷新状态
-			//获取window距离顶部的高度
-			//获取触点y轴位置
-			//获取触点x轴位置
 		},
 		touchmove: function(event){
 			if (data.touching !== true){
@@ -50,6 +50,7 @@ var dropRefresh = function(el, option){
 				if(data.distanceY > 0 && data.markY == -1){
 					data.markY = data.distanceY;
 				}
+				//下拉刷新时操作
 				if(data.markY > 0 && el.data('loading') != true){
 					var heightVal = Math.min(maxY, data.distanceY);
 					var borderBottomWidth = 0;
@@ -63,18 +64,12 @@ var dropRefresh = function(el, option){
 					}).data('loading', false);
 				}
 			}
-			//获取触点y轴位置
-			//计算y轴移动距离
-			//计算x轴移动距离
-			//x轴移动距离大于y轴移动距离判断为横屏滑动
-			//判断window距离顶部的位置是否为0，不为0则为正常滚动，为0则执行加载动效
-			//y轴移动距离为loading的border-bottom值，maxY为loading的height值
-			//将移动距离暴露给touchEnd
 		},
 		touchend: function(){
 			if (data.touching !== true){
 				return false
 			}
+			//是否在下拉刷新状态
 			if(data.markY > 0){
 				if(data.distanceY > maxY){
 					el.css({
@@ -87,10 +82,6 @@ var dropRefresh = function(el, option){
 				}
 			}
 			data.touching = false;
-			//判断y轴移动距离是否大于maxY
-			//大于则border-bottom值置为0,小于则回归顶部
-			//执行刷新数据操作
-			//执行origin方法
 		}
 	})
 }
